@@ -1,0 +1,365 @@
+1. Objective / Problem Statement
+Objective
+To explore and compare three pre-trained Hugging Face models suitable for different Natural Language Processing (NLP) tasks: text summarization, text classification, and question answering.
+Problem Statement
+Developing separate AI models for different NLP tasks requires large datasets, training time, and computational resources. This project explores how pre-trained models available on Hugging Face can be used directly to perform common NLP tasks efficiently. The project implements three models and compares their outputs for sample inputs.
+
+2. Approach and Methodology
+The project follows these steps:
+1. Select suitable pre-trained models from Hugging Face. 
+2. Use BART Large CNN for text summarization. 
+3. Use DistilBERT SST-2 for text classification. 
+4. Use DistilBERT SQuAD for question answering. 
+5. Load the models using the Hugging Face Transformers library. 
+6. Provide sample text, questions, and contexts as inputs. 
+7. Execute the models using Python in Google Colab. 
+8. Record the generated outputs, confidence scores, and execution times. 
+9. Compare the three models based on their tasks and outputs. 
+10. Summarize the observations and results. 
+
+3. Dataset or Sample Data Used
+This project does not use a separate external dataset. Instead, manually prepared sample text and questions are used to demonstrate the capabilities of the pre-trained models.
+Sample Data for Summarization
+Artificial intelligence is one of the most important technologies of the modern era. It is being used in education, healthcare, finance, transportation and other industries. Generative AI can generate new content such as text, images, music and computer code.
+Task: Generate a short summary of the given text.
+Sample Data for Classification
+Artificial intelligence is making education more interactive and helping students learn new concepts quickly.
+Task: Classify the sentiment of the text as Positive or Negative.
+Sample Data for Question Answering
+Context:
+Artificial Intelligence (AI) is a branch of computer science that allows machines to perform tasks that normally require human intelligence. AI is used in education, healthcare, finance, transportation and many other industries.
+Question:
+Where is Artificial Intelligence used?
+Expected type of output:
+The model extracts the relevant answer from the given context.
+
+4. Implementation / Source Code
+The project was implemented in Python using Google Colab and the Hugging Face Transformers library.
+Model 1 – BART for Summarization
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
+model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
+
+text = """
+Artificial intelligence is one of the most important technologies
+of the modern era. It is being used in education, healthcare,
+finance, transportation and many other industries.
+"""
+
+inputs = tokenizer(
+    [text],
+    max_length=1024,
+    return_tensors="pt",
+    truncation=True
+)
+
+summary_ids = model.generate(
+    inputs["input_ids"],
+    max_length=100,
+    min_length=30,
+    length_penalty=2.0,
+    num_beams=4,
+    early_stopping=True
+)
+
+summary = tokenizer.decode(
+    summary_ids[0],
+    skip_special_tokens=True
+)
+
+print("Summary:")
+print(summary)
+Model 2 – DistilBERT for Classification
+from transformers import pipeline
+
+classifier = pipeline(
+    "sentiment-analysis",
+    model="distilbert-base-uncased-finetuned-sst-2-english"
+)
+
+text = """
+Artificial intelligence is making education more interactive
+and helping students learn new concepts quickly.
+"""
+
+result = classifier(text)
+
+print("Classification Result:")
+print(result)
+Model 3 – DistilBERT for Question Answering
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+import torch
+
+tokenizer = AutoTokenizer.from_pretrained(
+    "distilbert-base-cased-distilled-squad"
+)
+
+model = AutoModelForQuestionAnswering.from_pretrained(
+    "distilbert-base-cased-distilled-squad"
+)
+
+context = """
+Artificial Intelligence (AI) is a branch of computer science that
+allows machines to perform tasks that normally require human intelligence.
+AI is used in education, healthcare, finance, transportation and many
+other industries.
+"""
+
+question = "Where is Artificial Intelligence used?"
+
+inputs = tokenizer(
+    question,
+    context,
+    return_tensors="pt"
+)
+
+with torch.no_grad():
+    outputs = model(**inputs)
+
+start = torch.argmax(outputs.start_logits)
+end = torch.argmax(outputs.end_logits)
+
+answer = tokenizer.decode(
+    inputs["input_ids"][0][start:end + 1]
+)
+
+print("Question:", question)
+print("Answer:", answer)
+Tools used: Python, Google Colab, Hugging Face Transformers, and pre-trained BART/DistilBERT models.
+SCREENSHOTS :
+
+
+
+
+
+
+
+# -*- coding: utf-8 -*-
+"""Hugging Face Model Exploration - VAC Gen AI
+
+Automatically generated by Colab.
+
+Original file is located at
+    https://colab.research.google.com/drive/17Pc2THm9zuFr2wRAd2q0JIdq_ASPeoPX
+"""
+
+# Hugging Face Model Exploration
+# Value Added Course - Generative AI
+
+print("Hugging Face Model Exploration Project")
+print("Tasks: Summarization, Classification, Question Answering")
+
+!pip install -q transformers torch
+
+from transformers import pipeline
+import time
+
+print("Transformers library imported successfully!")
+
+# Step 4: Text Summarization using BART
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+# Initialize tokenizer and model directly
+tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
+model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
+
+text = """
+Artificial intelligence is one of the most important technologies
+of the modern era. It is being used in education, healthcare,
+finance, transportation and many other industries. Generative AI
+is a branch of artificial intelligence that can generate new content
+such as text, images, music and computer code. Tools based on
+generative AI can help students learn concepts, summarize documents,
+write drafts and generate ideas. However, AI-generated information
+should be checked for accuracy because artificial intelligence systems
+can sometimes produce incorrect or misleading information.
+"""
+
+start = time.time()
+
+# Tokenize the input text
+inputs = tokenizer([text], max_length=1024, return_tensors="pt", truncation=True)
+
+# Generate summary
+summary_ids = model.generate(
+    inputs["input_ids"],
+    num_beams=4,
+    max_length=60,
+    min_length=25,
+    early_stopping=True
+)
+
+summary_text = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+
+end = time.time()
+
+print("ORIGINAL TEXT:")
+print(text)
+
+print("\nGENERATED SUMMARY:")
+print(summary_text)
+
+print("\nInference Time:", round(end - start, 2), "seconds")
+
+# Step 5: Text Classification using DistilBERT
+
+from transformers import pipeline
+import time
+
+# Load the classification model
+classifier = pipeline(
+    "sentiment-analysis",
+    model="distilbert-base-uncased-finetuned-sst-2-english"
+)
+
+text = """
+Artificial intelligence is making education more interactive and
+helping students learn new concepts quickly.
+"""
+
+start = time.time()
+
+# Perform classification
+result = classifier(text)
+
+end = time.time()
+
+print("Input Text:")
+print(text)
+
+print("\nClassification Result:")
+print(result)
+
+print("\nExecution Time:", round(end - start, 2), "seconds")
+
+# Step 6: Question Answering using DistilBERT
+
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+import time
+import torch
+
+# Load the Question Answering model and tokenizer directly
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-cased-distilled-squad")
+model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-cased-distilled-squad")
+
+context = """
+Artificial Intelligence (AI) is a branch of computer science that
+allows machines to perform tasks that normally require human intelligence.
+AI is used in education, healthcare, finance, transportation and many
+other industries.
+"""
+
+question = "Where is Artificial Intelligence used?"
+
+start = time.time()
+
+# Encode the context and question
+inputs = tokenizer(question, context, return_tensors="pt")
+
+# Get the answer
+with torch.no_grad():
+    outputs = model(**inputs)
+
+answer_start_scores = outputs.start_logits
+answer_end_scores = outputs.end_logits
+
+# Get the most likely beginning and end of the answer
+answer_start = torch.argmax(answer_start_scores)
+answer_end = torch.argmax(answer_end_scores) + 1
+
+# Decode the answer
+answer = tokenizer.decode(inputs["input_ids"][0][answer_start:answer_end])
+
+# Calculate confidence score (simplified, actual confidence can be more complex)
+confidence_score = torch.max(torch.softmax(answer_start_scores, dim=-1)) * torch.max(torch.softmax(answer_end_scores, dim=-1))
+
+end = time.time()
+
+print("Context:")
+print(context)
+
+print("\nQuestion:")
+print(question)
+
+print("\nAnswer:")
+print(answer)
+
+print("\nConfidence Score:")
+print(round(confidence_score.item(), 4))
+
+print("\nExecution Time:", round(end - start, 2), "seconds")
+
+# Step 7: Comparison of Hugging Face Models
+
+print("COMPARISON OF HUGGING FACE MODELS")
+print("=" * 80)
+
+print("\n1. BART Large CNN")
+print("Task      : Text Summarization")
+print("Input     : Long text")
+print("Output    : Short summary")
+print("Main Use  : Summarizing documents")
+
+print("\n2. DistilBERT SST-2")
+print("Task      : Text Classification")
+print("Input     : Text")
+print("Output    : Positive/Negative")
+print("Main Use  : Sentiment classification")
+
+print("\n3. DistilBERT SQuAD")
+print("Task      : Question Answering")
+print("Input     : Question + Context")
+print("Output    : Answer")
+print("Main Use  : Finding answers from text")
+
+print("\n" + "=" * 80)
+print("OBSERVATION")
+print("The three models perform different NLP tasks.")
+print("BART is used for summarization.")
+print("DistilBERT SST-2 is used for classification.")
+print("DistilBERT SQuAD is used for question answering.")
+
+"""# Step 8: Results and Observations
+
+## Results
+
+The three Hugging Face models were successfully tested for different
+Natural Language Processing tasks.
+
+| Model | Task | Result |
+|---|---|---|
+| BART Large CNN | Summarization | Generated a shorter summary from the input text |
+| DistilBERT SST-2 | Classification | Classified the text as POSITIVE |
+| DistilBERT SQuAD | Question Answering | Extracted the answer from the given context |
+
+## Observations
+
+1. BART was able to summarize the given Artificial Intelligence text.
+2. DistilBERT SST-2 classified the input text as POSITIVE with a
+   confidence score of approximately 0.9973.
+3. DistilBERT SQuAD extracted the relevant answer from the provided
+   context with a confidence score of approximately 0.512.
+4. Each model is designed for a specific NLP task.
+5. Pre-trained Hugging Face models can be used with Python without
+   training a model from scratch.
+
+# Step 9: Conclusion
+
+This project explored three Hugging Face pre-trained models for different
+Natural Language Processing tasks.
+
+- BART Large CNN was used for text summarization.
+- DistilBERT SST-2 was used for text classification.
+- DistilBERT SQuAD was used for question answering.
+
+The experiment demonstrated that different pre-trained models are
+designed for different NLP tasks. The models successfully processed the
+given inputs and produced meaningful outputs.
+
+Hugging Face makes it easy to explore and use pre-trained AI models with
+Python and the Transformers library. This project provided practical
+experience in applying Generative AI and Natural Language Processing
+models to real-world tasks.
+"""
